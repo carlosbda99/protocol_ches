@@ -32,9 +32,8 @@ def chat (client, addr):
 	elif nome=="$$QUIT": client.close()
 	else:
 		clients[addr]=nome
-		info = 'LogIn: '+nome+' at '+time.asctime()+'\n'
-		arq.write(info)
 		message = '\033[34m'+nome + ' entrou!'+'\033[0m\n'
+		arq.write(time.asctime()+': '+message+'\n')
 		byte_msg = message.encode('utf-8')
 		for c in client_all:
 			c.send(byte_msg)
@@ -53,11 +52,10 @@ def chat (client, addr):
 				client.send(exiting)
 				time.sleep(1)
 				x-=1
-			info = 'LogOut: '+nome+' at '+time.asctime()+'\n'
-			arq.write(info)
 			client.close()
 			client_all.remove(client)
 			message = '\033[34m'+'SERV ---> ' + clients[addr] + ' saiu!'+'\033[0m'
+			arq.write(time.asctime()+': '+message+'\n')
 			message = message.encode('utf-8')
 			del clients[addr]
 			for x in client_all:
@@ -65,22 +63,14 @@ def chat (client, addr):
 			break
 		elif byte_msg == '$$VIEW_ALL':
 			allon = '\033[34m'+'SERV ---> Usuarios online: %s'%(list(clients.values()))+'\033[0m'
+			arq.write(time.asctime()+': '+allon+'\n')
 			allon = allon.encode('utf-8')
 			client.send(allon)
-			'''elif byte_msg.split(' ')[0]=='$$PRIVATE':
-			cmd=byte_msg.split(' ')
-			pvt = cmd[3].encode('utf-8')
-			for x in clients:
-				if clients[x]==cmd[1]:
-					for l in client_all:
-						print (l.getaddrinfo((x)))
-						if x == l:
-							l.send(pvt)
-							break'''
 		elif not byte_msg:
 			continue
 		else:
 			message = '\033[32m'+clients[addr] + ' ---> ' + byte_msg+'\033[0m'
+			arq.write(time.asctime()+': '+message+'\n')
 			message = message.encode('utf-8')
 			for x in client_all:
 				x.send(message)
