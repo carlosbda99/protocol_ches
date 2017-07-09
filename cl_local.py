@@ -14,7 +14,6 @@ serv_quest = serv_quest.decode('utf-8')
 print (serv_quest)
 nome=''
 
-
 def listening (HOST,PORT):
     while True:
         line = cs_tcp.recv(1024)

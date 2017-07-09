@@ -40,14 +40,15 @@ def chat (client, addr):
 
 	nome = client.recv(1024)
 	nome = nome.decode('utf-8')
+	print (client)
 
 	if not nome:
 		client.close()
-	elif nome=="$$QUIT": client.close()
 	elif nome in list(clients.values()): 
 		sendingServ('Nome ja utilizado por um usuario on line...\n',client)
 		chat(client,addr)
 	else:
+		if nome=="$quit": client.close()
 		private[nome]=client
 		clients[addr]=nome
 		message = nome + ' entrou!\n'
@@ -58,58 +59,57 @@ def chat (client, addr):
 		entrance= entrance + '\n"$man" = Manual de comandos'
 		sendingServ(entrance,client)
 
-	while True:
-		message = client.recv (1024)
-		byte_msg = message.decode('utf-8')
-		if byte_msg=="$quit":
-			x=3
-			while x > 0:
-				exiting = 'SERV ---> Desconectando em %ds'%x
-				sendingServ(exiting,client)
-				time.sleep(1)
-				x-=1
-			client.close()
-			client_all.remove(client)
-			message = clients[addr] + ' saiu!'
-			arq.write(time.asctime()+': '+message+'\n')
-			del clients[addr]
-			del private[nome]
-			for l in client_all:
-				sendingServ(message,l)
-			break
-		elif byte_msg == '$allonline':
-			allon ='SERV ---> Usuarios online: %s'%(list(clients.values()))
-			sendingServ(allon,client)
-		elif byte_msg.split(' ')[0] == '$private':
-			if byte_msg.split(' ')[1] not in list(clients.values()):
-				msg = 'SERV ---> USUARIO NAO CONECTADO'
-				sendingServ(msg,client)
+		while True:
+			message = client.recv (1024)
+			byte_msg = message.decode('utf-8')
+			if byte_msg=="$quit":
+				x=3
+				while x > 0:
+					exiting = 'SERV ---> Desconectando em %ds'%x
+					sendingServ(exiting,client)
+					time.sleep(1)
+					x-=1
+				client.close()
+				client_all.remove(client)
+				message = clients[addr] + ' saiu!'
+				arq.write(time.asctime()+': '+message+'\n')
+				del private[nome]
+				del clients[addr]
+				for l in client_all:
+					sendingServ(message,l)
 				break
-			elif byte_msg.split(' ')[1] == nome:
-				msg = 'SERV ---> IMPOSSIVEL ENVIAR PARA SI MESMO'
+			elif byte_msg == '$allonline':
+				allon ='SERV ---> Usuarios online: %s'%(list(clients.values()))
+				sendingServ(allon,client)
+			elif byte_msg.split(' ')[0] == '$private':
+				if byte_msg.split(' ')[1] not in list(clients.values()):
+					msg = 'SERV ---> USUARIO NAO CONECTADO'
+					sendingServ(msg,client)
+					break
+				elif byte_msg.split(' ')[1] == nome:
+					msg = 'SERV ---> IMPOSSIVEL ENVIAR PARA SI MESMO'
+					sendingServ(msg,client)
+					break
+				amsg = byte_msg.split(' ')
+				msg = ' '.join(amsg[2:])
+				msg = nome + ' --$> ' + msg
+				arq.write(time.asctime() + ': ' + msg + ' para ' + amsg[1] + '\n')
+				sendingClient(msg,private[amsg[1]])
+			elif byte_msg=='$man':
+				msg = '"$quit" = Sair do bate-papo\n"$allonline" = Visualisar usuarios online\n"$private <nome_usuario_destino> <mensagem> = Envia <mensagem> para <nome_usuario_destino>"'
 				sendingServ(msg,client)
-				break
-			amsg = byte_msg.split(' ')
-			msg = ' '.join(amsg[2:])
-			msg = nome + ' --$> ' + msg
-			arq.write(time.asctime() + ': ' + msg + ' para ' + amsg[1] + '\n')
-			sendingClient(msg,private[amsg[1]])
-		elif byte_msg=='$man':
-			msg = '"$quit" = Sair do bate-papo\n"$allonline" = Visualisar usuarios online\n"$private <nome_usuario_destino> <mensagem> = Envia <mensagem> para <nome_usuario_destino>"'
-			sendingServ(msg)
-		elif not byte_msg:
-			continue
-		else:
-			message = clients[addr] + ' ---> ' + byte_msg
-			arq.write(time.asctime()+': '+message+'\n')
-			for x in client_all:
-				sendingClient(message,x)
-
+			elif not byte_msg:
+				continue
+			else:
+				message = clients[addr] + ' ---> ' + byte_msg
+				arq.write(time.asctime()+': '+message+'\n')
+				for x in client_all:
+					sendingClient(message,x)
+					
 while True:
 	client, addr = ss_tcp.accept()
 	client_all.add(client)
 	t = threading.Thread(target = chat,args = tuple([client,addr]))
 	t.start()
-
 arq.close()
 ss_tcp.close()
