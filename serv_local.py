@@ -19,10 +19,25 @@ data=time.asctime().split(' ')
 data='_'.join(data)
 arq=open(data+'.log','w')
 
-def chat (client, addr):
-	message = '\033[34m'+"SERV ---> Qual o seu nome?"+'\033[0m'
-	byte_msg = message.encode('utf-8')
+def coloringClient (msg):
+	msg = '\033[32m'+msg+'\033[0m'
+	return msg
+
+def sendingClient (msg,client):
+	byte_msg = coloringServ(msg).encode('utf-8')
 	client.send(byte_msg)
+
+def coloringServ (msg):
+	msg = '\033[34m'+msg+'\033[0m'
+	return msg
+
+def sendingServ (msg,client):
+	byte_msg = coloringServ(msg).encode('utf-8')
+	client.send(byte_msg)
+		
+def chat (client, addr):
+	message = "SERV ---> Qual o seu nome?"
+	sendingServ(message,client)
 
 	nome = client.recv(1024)
 	nome = nome.decode('utf-8')
@@ -32,14 +47,12 @@ def chat (client, addr):
 	elif nome=="$$QUIT": client.close()
 	else:
 		clients[addr]=nome
-		message = '\033[34m'+nome + ' entrou!'+'\033[0m\n'
+		message = nome + ' entrou!'
 		arq.write(time.asctime()+': '+message+'\n')
-		byte_msg = message.encode('utf-8')
 		for c in client_all:
-			c.send(byte_msg)
-		entrance = '\033[34m'+'SERV ---> Usuarios online -  %s'%(list(clients.values()))+'\033[0m'
-		entrance = entrance.encode('utf-8')
-		client.send(entrance)
+			sendingServ(message,c)
+		entrance = 'SERV ---> Usuarios online -  %s'%(list(clients.values()))
+		sendingServ(entrance,client)
 
 	while True:
 		message = client.recv (1024)
@@ -47,33 +60,29 @@ def chat (client, addr):
 		if byte_msg=="$$QUIT":
 			x=3
 			while x > 0:
-				exiting = '\033[34m'+'SERV ---> Desconectando em %ds'%x+'\033[0m'
-				exiting = exiting.encode('utf-8')
-				client.send(exiting)
+				exiting = 'SERV ---> Desconectando em %ds'%x
+				sendingServ(exiting,client)
 				time.sleep(1)
 				x-=1
 			client.close()
 			client_all.remove(client)
-			message = '\033[34m'+'SERV ---> ' + clients[addr] + ' saiu!'+'\033[0m'
+			message = clients[addr] + ' saiu!'
 			arq.write(time.asctime()+': '+message+'\n')
-			message = message.encode('utf-8')
 			del clients[addr]
-			for x in client_all:
-				x.send(message)
+			for l in client_all:
+				sendingServ(message,l)
 			break
 		elif byte_msg == '$$VIEW_ALL':
-			allon = '\033[34m'+'SERV ---> Usuarios online: %s'%(list(clients.values()))+'\033[0m'
+			allon ='SERV ---> Usuarios online: %s'%(list(clients.values()))
 			arq.write(time.asctime()+': '+allon+'\n')
-			allon = allon.encode('utf-8')
-			client.send(allon)
+			sendingServ(allon,client)
 		elif not byte_msg:
 			continue
 		else:
-			message = '\033[32m'+clients[addr] + ' ---> ' + byte_msg+'\033[0m'
+			message = clients[addr] + ' ---> ' + byte_msg
 			arq.write(time.asctime()+': '+message+'\n')
-			message = message.encode('utf-8')
 			for x in client_all:
-				x.send(message)
+				sendingClient(message,x)
 
 while True:
 	client, addr = ss_tcp.accept()
