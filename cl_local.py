@@ -3,7 +3,6 @@ import socket
 import threading
 
 HOST = socket.gethostbyname('localhost')
-#HOST = '10.24.6.40'
 PORT = 3000
 
 cs_tcp = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
