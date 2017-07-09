@@ -92,7 +92,7 @@ def chat (client, addr):
 			amsg = byte_msg.split(' ')
 			msg = ' '.join(amsg[2:])
 			msg = nome + ' --$> ' + msg
-			arq.write(msg + ' para ' + amsg[1] + '\n')
+			arq.write(time.asctime() + msg + ' para ' + amsg[1] + '\n')
 			sendingClient(msg,private[amsg[1]])
 		elif byte_msg=='$man':
 			msg = '"$quit" = Sair do bate-papo\n"$allonline" = Visualisar usuarios online\n"$private <nome_usuario_destino> <mensagem> = Envia <mensagem> para <nome_usuario_destino>"'
