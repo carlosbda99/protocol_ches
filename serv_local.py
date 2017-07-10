@@ -40,7 +40,6 @@ def chat (client, addr):
 
 	nome = client.recv(1024)
 	nome = nome.decode('utf-8')
-	print (client)
 
 	if not nome:
 		client.close()
@@ -105,7 +104,7 @@ def chat (client, addr):
 				arq.write(time.asctime()+': '+message+'\n')
 				for x in client_all:
 					sendingClient(message,x)
-					
+
 while True:
 	client, addr = ss_tcp.accept()
 	client_all.add(client)
