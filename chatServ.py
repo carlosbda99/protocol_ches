@@ -110,7 +110,6 @@ def chat (client, addr):
 while True:
 	client, addr = ss_tcp.accept()
 	client_all.add(client)
-	client.settimeout(30)
 	t = threading.Thread(target = chat,args = tuple([client,addr]))
 	t.start()
 arq.close()
